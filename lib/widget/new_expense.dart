@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:expense_tracker/model/expense.dart';
 
 class NewExpense extends StatefulWidget {
-  const NewExpense({super.key});
+  const NewExpense({super.key, required this.onAddExpense});
+
+  final void Function(Expense expense) onAddExpense;
 
   @override
   State<NewExpense> createState() {
@@ -29,6 +31,41 @@ class _NewExpenseState extends State<NewExpense> {
     });
   }
 
+  void submitExpenseDate() {
+    final enteredAmount = double.tryParse(amountController.text);
+    final amountIsInvalid = enteredAmount == null || enteredAmount <= 0;
+    if (titleController.text.trim().isEmpty ||
+        amountIsInvalid ||
+        selectedDate == null) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Invalid Input'),
+          content: const Text(
+              'Please make sure a valid title, amount, date and category was entered.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+              },
+              child: const Text('Okay'),
+            )
+          ],
+        ),
+      );
+      return;
+    }
+    widget.onAddExpense(
+      Expense(
+        title: titleController.text,
+        amount: enteredAmount,
+        date: selectedDate!,
+        category: selectedCategory,
+      ),
+    );
+    Navigator.pop(context);
+  }
+
   @override
   void dispose() {
     titleController.dispose();
@@ -39,7 +76,7 @@ class _NewExpenseState extends State<NewExpense> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 48, 16, 16),
       child: Column(
         children: [
           TextField(
@@ -117,8 +154,11 @@ class _NewExpenseState extends State<NewExpense> {
                 },
                 child: const Text('cancel'),
               ),
+              const SizedBox(
+                width: 4,
+              ),
               ElevatedButton(
-                onPressed: () {},
+                onPressed: submitExpenseDate,
                 child: const Text('save expense'),
               )
             ],
